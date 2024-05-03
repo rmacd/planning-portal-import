@@ -1,7 +1,5 @@
 package com.rmacd.models;
 
-import org.springframework.http.HttpMethod;
-
 import java.util.Map;
 
 public class ProxymanRequest {

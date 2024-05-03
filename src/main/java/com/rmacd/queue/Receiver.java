@@ -1,5 +1,6 @@
 package com.rmacd.queue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rmacd.models.ProxymanRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -20,6 +21,8 @@ public class Receiver {
 
     private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
 
+    ObjectMapper objectMapper = new ObjectMapper();
+
     @JmsListener(destination = "plans", containerFactory = "myFactory")
     public void receiveMessage(ProxymanRequest request) {
         logger.info("received message: {}", request.toString());
@@ -31,8 +34,7 @@ public class Receiver {
             for (String s : request.getQueries().keySet()) {
                 if (s.equals("f")) {
                     builder.addParameter("f", "geoJSON");
-                }
-                else {
+                } else {
                     builder.addParameter(s, request.getQueries().get(s));
                 }
             }
@@ -45,6 +47,7 @@ public class Receiver {
                  CloseableHttpResponse response = (CloseableHttpResponse) client
                          .execute(httpGet, new CustomHttpClientResponseHandler())) {
 
+//                GeometryJSON geometryJSON = objectMapper.readValue(EntityUtils.toByteArray(response.getEntity()), GeometryJSON.class);
                 final int statusCode = response.getStatusLine().getStatusCode();
             } catch (IOException e) {
                 throw new RuntimeException(e);
