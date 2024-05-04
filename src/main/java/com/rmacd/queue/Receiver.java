@@ -1,7 +1,8 @@
 package com.rmacd.queue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rmacd.models.ProxymanRequest;
+import com.rmacd.repos.es.PlanningFeatureRepo;
+import com.rmacd.repos.mdb.FeatureCollectionRepo;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -21,7 +22,13 @@ public class Receiver {
 
     private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    final FeatureCollectionRepo featureCollectionRepo;
+    private final PlanningFeatureRepo planningFeatureRepo;
+
+    public Receiver(FeatureCollectionRepo featureCollectionRepo, PlanningFeatureRepo planningFeatureRepo) {
+        this.featureCollectionRepo = featureCollectionRepo;
+        this.planningFeatureRepo = planningFeatureRepo;
+    }
 
     @JmsListener(destination = "plans", containerFactory = "myFactory")
     public void receiveMessage(ProxymanRequest request) {
@@ -43,12 +50,12 @@ public class Receiver {
                 httpGet.addHeader(key, request.getHeaders().get(key));
             }
 
-            try (CloseableHttpClient client = HttpClients.createDefault();
-                 CloseableHttpResponse response = (CloseableHttpResponse) client
-                         .execute(httpGet, new CustomHttpClientResponseHandler())) {
-
-//                GeometryJSON geometryJSON = objectMapper.readValue(EntityUtils.toByteArray(response.getEntity()), GeometryJSON.class);
-                final int statusCode = response.getStatusLine().getStatusCode();
+            try (
+                    CloseableHttpClient client = HttpClients.createDefault();
+                    CloseableHttpResponse response = (CloseableHttpResponse) client.execute(httpGet,
+                            new GeoJsonResponseHandler(featureCollectionRepo, planningFeatureRepo))
+            ) {
+                logger.info("completed request");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

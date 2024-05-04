@@ -1,0 +1,14 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo:4.2.14
+    container_name: mongodb-idox
+    environment:
+      - MONGO_INITDB_DATABASE=planning-import
+      - MONGO_INITDB_ROOT_USERNAME=planning-import-user
+      - MONGO_INITDB_ROOT_PASSWORD=planning-import-pass
+    volumes:
+      - ./docker/mongodb-init.js:/docker-entrypoint-initdb.d/mongodb-init.js:ro
+      - ./docker-runtime/mongodb:/data/db
+    ports:
+      - "27017:27017"

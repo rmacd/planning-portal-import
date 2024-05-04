@@ -2,3 +2,5 @@
 *.iml
 target/
 *.swp
+docker-runtime/
+application-local.properties

@@ -35,6 +35,19 @@
       <artifactId>spring-boot-starter-artemis</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-mongodb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>co.elastic.clients</groupId>
+      <artifactId>elasticsearch-java</artifactId>
+      <version>7.17.20</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>artemis-jms-server</artifactId>
       <version>2.33.0</version>
@@ -51,7 +64,17 @@
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
+      <artifactId>gt-metadata</artifactId>
+      <version>29.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
       <artifactId>gt-geojson</artifactId>
+      <version>29.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-epsg-hsql</artifactId>
       <version>29.5</version>
     </dependency>
   </dependencies>
