@@ -1,7 +1,8 @@
 package com.rmacd.queue;
 
-import com.rmacd.models.ProxymanRequest;
-import com.rmacd.repos.es.PlanningFeatureRepo;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import com.rmacd.config.JavaESClient;
+import com.rmacd.models.IncomingRequest;
 import com.rmacd.repos.mdb.FeatureCollectionRepo;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -23,15 +24,15 @@ public class Receiver {
     private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
 
     final FeatureCollectionRepo featureCollectionRepo;
-    private final PlanningFeatureRepo planningFeatureRepo;
+    final ElasticsearchClient javaESClient;
 
-    public Receiver(FeatureCollectionRepo featureCollectionRepo, PlanningFeatureRepo planningFeatureRepo) {
+    public Receiver(FeatureCollectionRepo featureCollectionRepo, ElasticsearchClient esClient) {
         this.featureCollectionRepo = featureCollectionRepo;
-        this.planningFeatureRepo = planningFeatureRepo;
+        this.javaESClient = esClient;
     }
 
     @JmsListener(destination = "plans", containerFactory = "myFactory")
-    public void receiveMessage(ProxymanRequest request) {
+    public void receiveMessage(IncomingRequest request) {
         logger.info("received message: {}", request.toString());
 
         try {
@@ -53,7 +54,7 @@ public class Receiver {
             try (
                     CloseableHttpClient client = HttpClients.createDefault();
                     CloseableHttpResponse response = (CloseableHttpResponse) client.execute(httpGet,
-                            new GeoJsonResponseHandler(featureCollectionRepo, planningFeatureRepo))
+                            new GeoJsonResponseHandler(featureCollectionRepo, javaESClient))
             ) {
                 logger.info("completed request");
             } catch (IOException e) {

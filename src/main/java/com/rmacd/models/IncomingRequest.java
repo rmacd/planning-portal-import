@@ -2,7 +2,7 @@ package com.rmacd.models;
 
 import java.util.Map;
 
-public class ProxymanRequest {
+public class IncomingRequest {
 
     SchemeEnum scheme;
     Boolean isURLEncoding;
@@ -18,7 +18,7 @@ public class ProxymanRequest {
         return queries;
     }
 
-    public ProxymanRequest setQueries(Map<String, String> queries) {
+    public IncomingRequest setQueries(Map<String, String> queries) {
         this.queries = queries;
         return this;
     }
@@ -27,7 +27,7 @@ public class ProxymanRequest {
         return host;
     }
 
-    public ProxymanRequest setHost(String host) {
+    public IncomingRequest setHost(String host) {
         this.host = host;
         return this;
     }
@@ -36,7 +36,7 @@ public class ProxymanRequest {
         return headers;
     }
 
-    public ProxymanRequest setHeaders(Map<String, String> headers) {
+    public IncomingRequest setHeaders(Map<String, String> headers) {
         this.headers = headers;
         return this;
     }
@@ -45,7 +45,7 @@ public class ProxymanRequest {
         return scheme;
     }
 
-    public ProxymanRequest setScheme(SchemeEnum scheme) {
+    public IncomingRequest setScheme(SchemeEnum scheme) {
         this.scheme = scheme;
         return this;
     }
@@ -54,7 +54,7 @@ public class ProxymanRequest {
         return isURLEncoding;
     }
 
-    public ProxymanRequest setURLEncoding(Boolean URLEncoding) {
+    public IncomingRequest setURLEncoding(Boolean URLEncoding) {
         isURLEncoding = URLEncoding;
         return this;
     }
@@ -63,7 +63,7 @@ public class ProxymanRequest {
         return preserveHostHeader;
     }
 
-    public ProxymanRequest setPreserveHostHeader(Boolean preserveHostHeader) {
+    public IncomingRequest setPreserveHostHeader(Boolean preserveHostHeader) {
         this.preserveHostHeader = preserveHostHeader;
         return this;
     }
@@ -72,7 +72,7 @@ public class ProxymanRequest {
         return path;
     }
 
-    public ProxymanRequest setPath(String path) {
+    public IncomingRequest setPath(String path) {
         this.path = path;
         return this;
     }
@@ -81,7 +81,7 @@ public class ProxymanRequest {
         return port;
     }
 
-    public ProxymanRequest setPort(Integer port) {
+    public IncomingRequest setPort(Integer port) {
         this.port = port;
         return this;
     }
@@ -90,7 +90,7 @@ public class ProxymanRequest {
         return method;
     }
 
-    public ProxymanRequest setMethod(HttpMethodEnum method) {
+    public IncomingRequest setMethod(HttpMethodEnum method) {
         this.method = method;
         return this;
     }

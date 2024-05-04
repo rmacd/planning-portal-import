@@ -1,6 +1,6 @@
 package com.rmacd.endpoints;
 
-import com.rmacd.models.ProxymanRequest;
+import com.rmacd.models.IncomingRequest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Controller;
@@ -17,7 +17,7 @@ public class Translator {
     }
 
     @PostMapping("/api/requests")
-    public String addRequest(@RequestBody ProxymanRequest request) {
+    public String addRequest(@RequestBody IncomingRequest request) {
         JmsTemplate template = context.getBean(JmsTemplate.class);
         template.setDefaultDestinationName("plans");
         template.convertAndSend(request);
