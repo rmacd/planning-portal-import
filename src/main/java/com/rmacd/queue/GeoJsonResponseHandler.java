@@ -2,6 +2,10 @@ package com.rmacd.queue;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import com.rmacd.models.mdb.FeatureCollectionWrapper;
 import com.rmacd.repos.mdb.FeatureCollectionRepo;
@@ -77,10 +81,13 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
                 Gson gson = new Gson();
                 Object esObj = gson.fromJson(new GeometryJSON(6).toString(reprojected), Object.class);
 
+                JsonNode parent = createObj(reprojected);
+                String parentJson = new ObjectMapper().writeValueAsString(parent);
+
                 IndexResponse r = esClient.index(i -> i
                         .index("planning-features")
                         .id(UUID.randomUUID().toString())
-                        .withJson(new StringReader(new GeometryJSON(6).toString(reprojected)))
+                        .withJson(new StringReader(parentJson))
                 );
 
                 logger.info("Wrote document {}", r.toString());
@@ -91,5 +98,32 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
             iterator.close();
         }
         return null;
+    }
+
+    JsonNode createObj(Geometry geometry) throws JsonProcessingException {
+        String geometryString = new GeometryJSON(6).toString(geometry);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode geometryNode = objectMapper.readTree(geometryString);
+        JsonNode parentNode = objectMapper.createObjectNode();
+
+        addField(parentNode, "geometry", geometryNode);
+        return parentNode;
+    }
+
+    // Remove a field from JsonNode
+    public static void removeField(JsonNode jsonNode, String fieldName) {
+        if (jsonNode instanceof ObjectNode) {
+            ((ObjectNode) jsonNode).remove(fieldName);
+        }
+    }
+
+    // Add a field to JsonNode
+    public static void addField(JsonNode jsonNode, String fieldName, Object value) {
+        if (jsonNode instanceof ObjectNode) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode valueNode = objectMapper.valueToTree(value);
+            ((ObjectNode) jsonNode).set(fieldName, valueNode);
+//            ((ObjectNode) jsonNode).put(fieldName, value);
+        }
     }
 }

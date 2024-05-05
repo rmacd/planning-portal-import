@@ -1,0 +1,7 @@
+{
+  "properties": {
+    "geometry": {
+      "type": "geo_shape"
+    }
+  }
+}
