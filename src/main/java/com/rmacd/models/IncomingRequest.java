@@ -13,13 +13,13 @@ public class IncomingRequest {
     Map<String, String> headers;
     Map<String, String> queries;
     String host;
-    String authority;
+    AuthorityEnum authority;
 
-    public String getAuthority() {
+    public AuthorityEnum getAuthority() {
         return authority;
     }
 
-    public IncomingRequest setAuthority(String authority) {
+    public IncomingRequest setAuthority(AuthorityEnum authority) {
         this.authority = authority;
         return this;
     }

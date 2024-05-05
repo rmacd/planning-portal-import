@@ -1,5 +1,6 @@
 package com.rmacd.endpoints;
 
+import com.rmacd.models.AuthorityEnum;
 import com.rmacd.models.IncomingRequest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jms.core.JmsTemplate;
@@ -18,7 +19,7 @@ public class Translator {
     }
 
     @PostMapping("/api/requests")
-    public String addRequest(@RequestBody IncomingRequest request, @RequestParam String authority) {
+    public String addRequest(@RequestBody IncomingRequest request, @RequestParam AuthorityEnum authority) {
         // add local authority to request
         request.setAuthority(authority);
         JmsTemplate template = context.getBean(JmsTemplate.class);

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
+import com.rmacd.models.AuthorityEnum;
 import com.rmacd.models.IncomingRequest;
 import com.rmacd.models.mdb.FailedWrite;
 import com.rmacd.models.mdb.FeatureCollectionWrapper;
@@ -43,6 +44,8 @@ import static org.geotools.referencing.crs.DefaultGeographicCRS.WGS84;
 public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
 
     private static final Logger logger = LoggerFactory.getLogger(GeoJsonResponseHandler.class);
+
+    final boolean dryRun = true;
 
     final FeatureCollectionRepo featureCollectionRepo;
     final FailedWriteRepo failedWriteRepo;
@@ -80,7 +83,6 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
         featureCollectionRepo.save(new FeatureCollectionWrapper(UUID.randomUUID().toString(), thisResponse));
         FeatureIterator<SimpleFeature> iterator = fc.features();
 
-
         try {
             while (iterator.hasNext()) {
                 Feature feature = iterator.next();
@@ -100,12 +102,14 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
                 String parentJson = new ObjectMapper().writeValueAsString(parent);
 
                 try {
-                    IndexResponse r = esClient.index(i -> i
-                            .index("planning-features")
-                            .id(docId)
-                            .withJson(new StringReader(parentJson))
-                    );
-                    logger.info("Wrote document {}", r.toString());
+                    if (!dryRun) {
+                        IndexResponse r = esClient.index(i -> i
+                                .index("planning-features")
+                                .id(docId)
+                                .withJson(new StringReader(parentJson))
+                        );
+                        logger.info("Wrote document {}", r.toString());
+                    }
                 } catch (ElasticsearchException e) {
                     logger.error("Unable to write document to ES: {}", parentJson);
                     if (e.getMessage().contains("failed to parse field [geometry]")) {
@@ -139,7 +143,7 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
         addField(parentNode, "date_modified", ((SimpleFeatureImpl) feature).getAttribute("DATEMODIFIED"));
         addField(parentNode, "address", ((SimpleFeatureImpl) feature).getAttribute("ADDRESS"));
         addField(parentNode, "description", ((SimpleFeatureImpl) feature).getAttribute("DESCRIPTION"));
-        addField(parentNode, "derived_type", getDerivedType(refVal));
+        addField(parentNode, "derived_type", getDerivedType(originalRequest.getAuthority().getDerivedTypeIndex(), refVal));
         addField(parentNode, "authority", originalRequest.getAuthority());
         // main geo is already reprojected
         addField(parentNode, "geometry", geometryNode);
@@ -159,17 +163,22 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode valueNode = objectMapper.valueToTree(value);
             ((ObjectNode) jsonNode).set(fieldName, valueNode);
-//            ((ObjectNode) jsonNode).put(fieldName, value);
         }
     }
 
-    static String getDerivedType(String input) {
+    static String getDerivedType(AuthorityEnum authority, String input) {
+        return getDerivedType(authority.getDerivedTypeIndex(), input);
+    }
+
+    // should be able to extract type of application (eg TO / HHA) based on authority format
+    // eg edinburgh = 123/456/HHA
+    static String getDerivedType(int derivedTypeIndex, String input) {
         // eg 12345/HHA/21 should generate "HHA"
         if (null == input || !input.contains("/")) return null;
         if (input.chars().filter(x -> x == '/').count() != 2) return null;
         String[] derivedTypes = input.split("/");
         if (derivedTypes.length < 1) return null;
-        String derivedType = derivedTypes[1].toUpperCase();
+        String derivedType = derivedTypes[derivedTypeIndex].toUpperCase();
         // now test the string
         String output = derivedType.replaceAll("[^A-Z]", "");
         if (output.length() == derivedType.length()) return output;
