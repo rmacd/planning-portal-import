@@ -34,12 +34,6 @@
       },
       "description": {
         "type": "text"
-      },
-      "ispavisible": {
-        "type": "boolean"
-      },
-      "iscavisible": {
-        "type": "boolean"
       }
     }
   },

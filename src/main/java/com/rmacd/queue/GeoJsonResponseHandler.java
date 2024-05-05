@@ -123,8 +123,6 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
         addField(parentNode, "date_modified", ((SimpleFeatureImpl) feature).getAttribute("DATEMODIFIED"));
         addField(parentNode, "address", ((SimpleFeatureImpl) feature).getAttribute("ADDRESS"));
         addField(parentNode, "description", ((SimpleFeatureImpl) feature).getAttribute("DESCRIPTION"));
-        addField(parentNode, "ispavisible", ((SimpleFeatureImpl) feature).getAttribute("ISPAVISIBLE"));
-        addField(parentNode, "iscavisible", ((SimpleFeatureImpl) feature).getAttribute("ISCAVISIBLE"));
         // main geo is already reprojected
         addField(parentNode, "geometry", geometryNode);
         return parentNode;
