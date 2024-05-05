@@ -1,6 +1,7 @@
 package com.rmacd.queue;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,7 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import com.rmacd.models.IncomingRequest;
+import com.rmacd.models.mdb.FailedWrite;
 import com.rmacd.models.mdb.FeatureCollectionWrapper;
+import com.rmacd.repos.mdb.FailedWriteRepo;
 import com.rmacd.repos.mdb.FeatureCollectionRepo;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -42,6 +45,7 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
     private static final Logger logger = LoggerFactory.getLogger(GeoJsonResponseHandler.class);
 
     final FeatureCollectionRepo featureCollectionRepo;
+    final FailedWriteRepo failedWriteRepo;
     final ElasticsearchClient esClient;
     final IncomingRequest originalRequest;
 
@@ -59,10 +63,12 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
 
     public GeoJsonResponseHandler(
             FeatureCollectionRepo featureCollectionRepo,
+            FailedWriteRepo failedWriteRepo,
             ElasticsearchClient esClient,
             IncomingRequest originalRequest
     ) {
         this.featureCollectionRepo = featureCollectionRepo;
+        this.failedWriteRepo = failedWriteRepo;
         this.esClient = esClient;
         this.originalRequest = originalRequest;
     }
@@ -90,16 +96,24 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
                 String docId = "%s_%s".formatted(originalRequest.getAuthority(), ((SimpleFeatureImpl) feature).getID());
 
                 // call helper to add other fields
-                JsonNode parent = createObj(docId, feature, reprojected);
+                JsonNode parent = createObj(docId, feature, reprojected, originalRequest);
                 String parentJson = new ObjectMapper().writeValueAsString(parent);
 
-                IndexResponse r = esClient.index(i -> i
-                        .index("planning-features")
-                        .id(docId)
-                        .withJson(new StringReader(parentJson))
-                );
-
-                logger.info("Wrote document {}", r.toString());
+                try {
+                    IndexResponse r = esClient.index(i -> i
+                            .index("planning-features")
+                            .id(docId)
+                            .withJson(new StringReader(parentJson))
+                    );
+                    logger.info("Wrote document {}", r.toString());
+                } catch (ElasticsearchException e) {
+                    logger.error("Unable to write document to ES: {}", parentJson);
+                    if (e.getMessage().contains("failed to parse field [geometry]")) {
+                        logger.debug("Writing to separate index to add later");
+                        FailedWrite failedWrite = failedWriteRepo.save(new FailedWrite(docId, parentJson));
+                        logger.info("Wrote failed write to MDB ID {}", failedWrite.getId());
+                    }
+                }
             }
         } catch (TransformException e) {
             throw new RuntimeException(e);
@@ -109,20 +123,24 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
         return null;
     }
 
-    JsonNode createObj(String docId, Feature feature, Geometry geometry) throws JsonProcessingException {
+    JsonNode createObj(String docId, Feature feature, Geometry geometry, IncomingRequest originalRequest) throws JsonProcessingException {
         String geometryString = new GeometryJSON(6).toString(geometry);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode geometryNode = objectMapper.readTree(geometryString);
         JsonNode parentNode = objectMapper.createObjectNode();
 
+        String refVal = (String) ((SimpleFeatureImpl) feature).getAttribute("REFVAL");
+
         // feature contains fields / properties
         // use original object ID on internal fields ... es doc id contains authority key
         addField(parentNode, "object_id", ((SimpleFeatureImpl) feature).getAttribute("OBJECTID"));
-        addField(parentNode, "refval", ((SimpleFeatureImpl) feature).getAttribute("REFVAL"));
+        addField(parentNode, "refval", refVal);
         addField(parentNode, "keyval", ((SimpleFeatureImpl) feature).getAttribute("KEYVAL"));
         addField(parentNode, "date_modified", ((SimpleFeatureImpl) feature).getAttribute("DATEMODIFIED"));
         addField(parentNode, "address", ((SimpleFeatureImpl) feature).getAttribute("ADDRESS"));
         addField(parentNode, "description", ((SimpleFeatureImpl) feature).getAttribute("DESCRIPTION"));
+        addField(parentNode, "derived_type", getDerivedType(refVal));
+        addField(parentNode, "authority", originalRequest.getAuthority());
         // main geo is already reprojected
         addField(parentNode, "geometry", geometryNode);
         return parentNode;
@@ -143,5 +161,18 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
             ((ObjectNode) jsonNode).set(fieldName, valueNode);
 //            ((ObjectNode) jsonNode).put(fieldName, value);
         }
+    }
+
+    static String getDerivedType(String input) {
+        // eg 12345/HHA/21 should generate "HHA"
+        if (null == input || !input.contains("/")) return null;
+        if (input.chars().filter(x -> x == '/').count() != 2) return null;
+        String[] derivedTypes = input.split("/");
+        if (derivedTypes.length < 1) return null;
+        String derivedType = derivedTypes[1].toUpperCase();
+        // now test the string
+        String output = derivedType.replaceAll("[^A-Z]", "");
+        if (output.length() == derivedType.length()) return output;
+        return null;
     }
 }

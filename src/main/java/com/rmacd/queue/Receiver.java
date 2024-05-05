@@ -2,6 +2,7 @@ package com.rmacd.queue;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.rmacd.models.IncomingRequest;
+import com.rmacd.repos.mdb.FailedWriteRepo;
 import com.rmacd.repos.mdb.FeatureCollectionRepo;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -24,10 +25,12 @@ public class Receiver {
 
     final FeatureCollectionRepo featureCollectionRepo;
     final ElasticsearchClient javaESClient;
+    private final FailedWriteRepo failedWriteRepo;
 
-    public Receiver(FeatureCollectionRepo featureCollectionRepo, ElasticsearchClient esClient) {
+    public Receiver(FeatureCollectionRepo featureCollectionRepo, ElasticsearchClient esClient, FailedWriteRepo failedWriteRepo) {
         this.featureCollectionRepo = featureCollectionRepo;
         this.javaESClient = esClient;
+        this.failedWriteRepo = failedWriteRepo;
     }
 
     @JmsListener(destination = "plans", containerFactory = "myFactory")
@@ -53,7 +56,7 @@ public class Receiver {
             try (
                     CloseableHttpClient client = HttpClients.createDefault();
                     CloseableHttpResponse response = (CloseableHttpResponse) client.execute(httpGet,
-                            new GeoJsonResponseHandler(featureCollectionRepo, javaESClient, request))
+                            new GeoJsonResponseHandler(featureCollectionRepo, failedWriteRepo, javaESClient, request))
             ) {
                 logger.info("completed request");
             } catch (IOException e) {

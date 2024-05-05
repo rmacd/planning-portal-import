@@ -25,6 +25,9 @@
           }
         }
       },
+      "authority": {
+        "type": "keyword"
+      },
       "date_modified": {
         "type": "date",
         "format": "epoch_millis"
@@ -34,6 +37,9 @@
       },
       "description": {
         "type": "text"
+      },
+      "derived_type": {
+        "type": "keyword"
       }
     }
   },
