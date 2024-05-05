@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
+import com.rmacd.models.IncomingRequest;
 import com.rmacd.models.mdb.FeatureCollectionWrapper;
 import com.rmacd.repos.mdb.FeatureCollectionRepo;
 import org.apache.http.HttpResponse;
@@ -42,6 +43,7 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
 
     final FeatureCollectionRepo featureCollectionRepo;
     final ElasticsearchClient esClient;
+    final IncomingRequest originalRequest;
 
     // MathTransform to transform from source CRS to target CRS
     static MathTransform transform;
@@ -56,10 +58,13 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
     }
 
     public GeoJsonResponseHandler(
-            FeatureCollectionRepo featureCollectionRepo, ElasticsearchClient esClient
+            FeatureCollectionRepo featureCollectionRepo,
+            ElasticsearchClient esClient,
+            IncomingRequest originalRequest
     ) {
         this.featureCollectionRepo = featureCollectionRepo;
         this.esClient = esClient;
+        this.originalRequest = originalRequest;
     }
 
     @Override
@@ -81,12 +86,16 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
                 Gson gson = new Gson();
                 Object esObj = gson.fromJson(new GeometryJSON(6).toString(reprojected), Object.class);
 
-                JsonNode parent = createObj(reprojected);
+                // make sure we're using same ID throughout
+                String docId = "%s_%s".formatted(originalRequest.getAuthority(), ((SimpleFeatureImpl) feature).getID());
+
+                // call helper to add other fields
+                JsonNode parent = createObj(docId, feature, reprojected);
                 String parentJson = new ObjectMapper().writeValueAsString(parent);
 
                 IndexResponse r = esClient.index(i -> i
                         .index("planning-features")
-                        .id(UUID.randomUUID().toString())
+                        .id(docId)
                         .withJson(new StringReader(parentJson))
                 );
 
@@ -100,12 +109,23 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
         return null;
     }
 
-    JsonNode createObj(Geometry geometry) throws JsonProcessingException {
+    JsonNode createObj(String docId, Feature feature, Geometry geometry) throws JsonProcessingException {
         String geometryString = new GeometryJSON(6).toString(geometry);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode geometryNode = objectMapper.readTree(geometryString);
         JsonNode parentNode = objectMapper.createObjectNode();
 
+        // feature contains fields / properties
+        // use original object ID on internal fields ... es doc id contains authority key
+        addField(parentNode, "object_id", ((SimpleFeatureImpl) feature).getAttribute("OBJECTID"));
+        addField(parentNode, "refval", ((SimpleFeatureImpl) feature).getAttribute("REFVAL"));
+        addField(parentNode, "keyval", ((SimpleFeatureImpl) feature).getAttribute("KEYVAL"));
+        addField(parentNode, "date_modified", ((SimpleFeatureImpl) feature).getAttribute("DATEMODIFIED"));
+        addField(parentNode, "address", ((SimpleFeatureImpl) feature).getAttribute("ADDRESS"));
+        addField(parentNode, "description", ((SimpleFeatureImpl) feature).getAttribute("DESCRIPTION"));
+        addField(parentNode, "ispavisible", ((SimpleFeatureImpl) feature).getAttribute("ISPAVISIBLE"));
+        addField(parentNode, "iscavisible", ((SimpleFeatureImpl) feature).getAttribute("ISCAVISIBLE"));
+        // main geo is already reprojected
         addField(parentNode, "geometry", geometryNode);
         return parentNode;
     }

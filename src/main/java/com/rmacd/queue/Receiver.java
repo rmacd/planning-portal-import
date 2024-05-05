@@ -1,7 +1,6 @@
 package com.rmacd.queue;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import com.rmacd.config.JavaESClient;
 import com.rmacd.models.IncomingRequest;
 import com.rmacd.repos.mdb.FeatureCollectionRepo;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -54,7 +53,7 @@ public class Receiver {
             try (
                     CloseableHttpClient client = HttpClients.createDefault();
                     CloseableHttpResponse response = (CloseableHttpResponse) client.execute(httpGet,
-                            new GeoJsonResponseHandler(featureCollectionRepo, javaESClient))
+                            new GeoJsonResponseHandler(featureCollectionRepo, javaESClient, request))
             ) {
                 logger.info("completed request");
             } catch (IOException e) {

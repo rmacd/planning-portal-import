@@ -1,0 +1,60 @@
+{
+  "mappings": {
+    "properties": {
+      "object_id": {
+        "type": "keyword"
+      },
+      "geometry": {
+        "type": "geo_shape"
+      },
+      "refval": {
+        "type": "text",
+        "analyzer": "string_uppercase",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "keyval": {
+        "type": "text",
+        "analyzer": "string_uppercase",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      },
+      "date_modified": {
+        "type": "date",
+        "format": "epoch_millis"
+      },
+      "address": {
+        "type": "text"
+      },
+      "description": {
+        "type": "text"
+      },
+      "ispavisible": {
+        "type": "boolean"
+      },
+      "iscavisible": {
+        "type": "boolean"
+      }
+    }
+  },
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "string_uppercase": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "uppercase",
+            "asciifolding"
+          ]
+        }
+      }
+    }
+  }
+}

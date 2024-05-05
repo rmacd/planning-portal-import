@@ -13,6 +13,16 @@ public class IncomingRequest {
     Map<String, String> headers;
     Map<String, String> queries;
     String host;
+    String authority;
+
+    public String getAuthority() {
+        return authority;
+    }
+
+    public IncomingRequest setAuthority(String authority) {
+        this.authority = authority;
+        return this;
+    }
 
     public Map<String, String> getQueries() {
         return queries;
@@ -97,7 +107,7 @@ public class IncomingRequest {
 
     @Override
     public String toString() {
-        return "ProxymanRequest{" +
+        return "IncomingRequest{" +
                 "scheme=" + scheme +
                 ", isURLEncoding=" + isURLEncoding +
                 ", preserveHostHeader=" + preserveHostHeader +
@@ -107,6 +117,7 @@ public class IncomingRequest {
                 ", headers=" + headers +
                 ", queries=" + queries +
                 ", host='" + host + '\'' +
+                ", authority='" + authority + '\'' +
                 '}';
     }
 }

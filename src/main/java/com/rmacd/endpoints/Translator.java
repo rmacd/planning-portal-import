@@ -6,6 +6,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class Translator {
@@ -17,7 +18,9 @@ public class Translator {
     }
 
     @PostMapping("/api/requests")
-    public String addRequest(@RequestBody IncomingRequest request) {
+    public String addRequest(@RequestBody IncomingRequest request, @RequestParam String authority) {
+        // add local authority to request
+        request.setAuthority(authority);
         JmsTemplate template = context.getBean(JmsTemplate.class);
         template.setDefaultDestinationName("plans");
         template.convertAndSend(request);
