@@ -45,8 +45,6 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
 
     private static final Logger logger = LoggerFactory.getLogger(GeoJsonResponseHandler.class);
 
-    final boolean dryRun = true;
-
     final FeatureCollectionRepo featureCollectionRepo;
     final FailedWriteRepo failedWriteRepo;
     final ElasticsearchClient esClient;
@@ -102,14 +100,12 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
                 String parentJson = new ObjectMapper().writeValueAsString(parent);
 
                 try {
-                    if (!dryRun) {
-                        IndexResponse r = esClient.index(i -> i
-                                .index("planning-features")
-                                .id(docId)
-                                .withJson(new StringReader(parentJson))
-                        );
-                        logger.info("Wrote document {}", r.toString());
-                    }
+                    IndexResponse r = esClient.index(i -> i
+                            .index("planning-features")
+                            .id(docId)
+                            .withJson(new StringReader(parentJson))
+                    );
+                    logger.info("Wrote document {}", r.toString());
                 } catch (ElasticsearchException e) {
                     logger.error("Unable to write document to ES: {}", parentJson);
                     if (e.getMessage().contains("failed to parse field [geometry]")) {
