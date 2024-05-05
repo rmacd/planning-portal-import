@@ -12,7 +12,6 @@ fi
 
 ./es-local.sh -s $1/_cat/indices | grep $INDEX
 ./es-local.sh -s -XDELETE $1/$INDEX
-#./es-local.sh -s -XPUT $1/$INDEX
 ./es-local.sh -s -XPUT $1/$INDEX/ -d@es-settings.json
 
 
