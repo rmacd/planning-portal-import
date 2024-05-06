@@ -179,4 +179,13 @@ public class PlanningDetails {
 
     public PlanningDetails() {}
 
+    @Override
+    public String toString() {
+        return "PlanningDetails{" +
+                "reference='" + reference + '\'' +
+                ", status=" + status +
+                ", appealStatus=" + appealStatus +
+                ", applicationReceived=" + applicationReceived +
+                '}';
+    }
 }

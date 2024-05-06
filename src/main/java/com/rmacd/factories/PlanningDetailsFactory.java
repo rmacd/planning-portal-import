@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class PlanningDetailsFactory {
 
@@ -126,7 +127,11 @@ public class PlanningDetailsFactory {
     }
 
     static String toEnum(String input) {
-        return input.toUpperCase().replaceAll("[^A-Z]", "_");
+        return input.toUpperCase()
+                .replaceAll("[^A-Z]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^_+", "")
+                .replaceAll("_+$", "");
     }
 
     static String normaliseName(String input) {
@@ -138,7 +143,7 @@ public class PlanningDetailsFactory {
     }
 
     static LocalDate parseDate(String input) {
-        return LocalDate.from(DateTimeFormatter.ofPattern("EEE dd MMM yyyy").parse(input));
+        return LocalDate.from(DateTimeFormatter.ofPattern("EEE dd MMM yyyy", Locale.ENGLISH).parse(input));
     }
 
 }

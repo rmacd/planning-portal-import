@@ -3,11 +3,14 @@ package com.rmacd.models.mdb;
 import com.rmacd.models.AuthorityEnum;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
+
 @Document(collection = "response_cache")
 public class ResponseCache {
 
     String id;
     String document;
+    LocalDate lastUpdate = LocalDate.now();
 
     public String getId() {
         return id;
@@ -37,4 +40,7 @@ public class ResponseCache {
         return "details_%s_%s".formatted(authorityEnum, ref);
     }
 
+    public LocalDate getLastUpdate() {
+        return lastUpdate;
+    }
 }
