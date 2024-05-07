@@ -3,6 +3,7 @@ package com.rmacd.factories;
 import com.rmacd.models.AppealStatusEnum;
 import com.rmacd.models.PlanningDetails;
 import com.rmacd.models.PlanningStatusEnum;
+import com.rmacd.models.mdb.ResponseCache;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,14 +17,19 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.rmacd.models.ModelUtils.toEnum;
+
 public class PlanningDetailsFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(PlanningDetailsFactory.class);
+    private static final Pattern p = Pattern.compile("^there (?:is|are) ([0-9]{1,3})", Pattern.CASE_INSENSITIVE);
 
-    public static PlanningDetails create(String input) {
-        Document doc = Jsoup.parse(input);
-
+    public static PlanningDetails create(ResponseCache input) {
         PlanningDetails details = new PlanningDetails();
+
+        details.setKeyVal(input.getRef());
+
+        Document doc = Jsoup.parse(input.getDocument());
         List<Element> rows = doc.select("table tr");
         for (Element row : rows) {
             Element head = row.selectFirst("th");
@@ -136,21 +142,11 @@ public class PlanningDetailsFactory {
 
     static Integer getAssociatedItemCount(String input) {
         if (null == input || input.isEmpty()) return null;
-        Pattern p = Pattern.compile("^there (?:is|are) ([0-9]{1,3})", Pattern.CASE_INSENSITIVE);
         Matcher m = p.matcher(input);
-
         if (m.find()) {
             return Integer.valueOf(m.group(1));
         }
         return null;
-    }
-
-    static String toEnum(String input) {
-        return input.toUpperCase()
-                .replaceAll("[^A-Z]", "_")
-                .replaceAll("_+", "_")
-                .replaceAll("^_+", "")
-                .replaceAll("_+$", "");
     }
 
     static String normaliseName(String input) {

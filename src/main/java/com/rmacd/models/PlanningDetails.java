@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 public class PlanningDetails {
 
+    String keyVal;
     String reference;
     LocalDate validated;
     String address;
@@ -26,6 +27,15 @@ public class PlanningDetails {
     LocalDate applicationReceived;
 
     public PlanningDetails() {
+    }
+
+    public String getKeyVal() {
+        return keyVal;
+    }
+
+    public PlanningDetails setKeyVal(String keyVal) {
+        this.keyVal = keyVal;
+        return this;
     }
 
     public Integer getAssociatedDocuments() {
@@ -201,11 +211,6 @@ public class PlanningDetails {
 
     @Override
     public String toString() {
-        return "PlanningDetails{" +
-                "reference='" + reference + '\'' +
-                ", status=" + status +
-                ", appealStatus=" + appealStatus +
-                ", applicationReceived=" + applicationReceived +
-                '}';
+        return "PlanningDetails{" + "reference='" + reference + '\'' + ", status=" + status + ", appealStatus=" + appealStatus + ", applicationReceived=" + applicationReceived + '}';
     }
 }

@@ -6,6 +6,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.rmacd.models.DocumentDetails;
 import com.rmacd.models.PlanningDetails;
 import com.rmacd.models.es.PlanningFeature;
 import com.rmacd.services.MetadataService;
@@ -32,6 +33,11 @@ public class Debug {
     @GetMapping("/debug/get-cached-details")
     public List<PlanningDetails> getCachedPlanningDetails() {
         return metadataService.getCachedPlanningDetails();
+    }
+
+    @GetMapping("/debug/get-cached-docs")
+    public List<DocumentDetails> getCachedDocDetails() {
+        return metadataService.getCachedDocumentDetails();
     }
 
     @GetMapping("/debug/update-stls")
