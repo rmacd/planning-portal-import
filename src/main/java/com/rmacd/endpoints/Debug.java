@@ -63,6 +63,7 @@ public class Debug {
                     if (null != hit.source()) {
                         PlanningFeature feature = hit.source();
                         PlanningDetails details = metadataService.getPlanningDetails(feature.getAuthority(), feature.getKeyval());
+                        List<DocumentDetails> docs = metadataService.getDocumentsDetails(feature.getAuthority(), feature.getKeyval());
                         logger.info("Got details: {}", details);
                     }
                     processedHits++;

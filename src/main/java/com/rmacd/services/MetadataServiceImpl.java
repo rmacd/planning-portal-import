@@ -81,7 +81,7 @@ public class MetadataServiceImpl implements MetadataService {
             HttpGet req = new HttpGet(uri);
             try (final CloseableHttpClient httpClient = HttpClients.createDefault(); final CloseableHttpResponse response = httpClient.execute(req)) {
                 final String result = EntityUtils.toString(response.getEntity());
-                return responseCacheRepo.save(new ResponseCache(docType, docType.generateId(authority, ref), ref, result));
+                return responseCacheRepo.save(new ResponseCache(docType, authority, ref, result));
             }
         } catch (URISyntaxException | IOException e) {
             throw new RuntimeException(e);

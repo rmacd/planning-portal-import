@@ -15,9 +15,10 @@ public class ResponseCache {
     String document;
     LocalDate lastUpdate = LocalDate.now();
 
-    public ResponseCache(ResourceTypeEnum type, String id, String ref, String document) {
+    public ResponseCache(ResourceTypeEnum type, AuthorityEnum authority, String ref, String document) {
         this.type = type;
-        this.id = id;
+        this.id = type.generateId(authority, ref);
+        this.authority = authority;
         this.ref = ref;
         this.document = document;
     }
