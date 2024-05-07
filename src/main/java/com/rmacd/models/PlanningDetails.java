@@ -12,6 +12,21 @@ public class PlanningDetails {
     AppealStatusEnum appealStatus;
     Integer associatedDocuments;
     Integer associatedProperties;
+    // further information
+    String applicationType;
+    String decisionLevel;
+    String communityCouncil;
+    String ward;
+    String applicantName;
+    String agentName;
+    String agentCompanyName;
+    String agentAddress;
+    String phone;
+    String email;
+    LocalDate applicationReceived;
+
+    public PlanningDetails() {
+    }
 
     public Integer getAssociatedDocuments() {
         return associatedDocuments;
@@ -103,19 +118,6 @@ public class PlanningDetails {
         return this;
     }
 
-    // further information
-    String applicationType;
-    String decisionLevel;
-    String communityCouncil;
-    String ward;
-    String applicantName;
-    String agentName;
-    String agentCompanyName;
-    String agentAddress;
-    String phone;
-    String email;
-    LocalDate applicationReceived;
-
     public String getCommunityCouncil() {
         return communityCouncil;
     }
@@ -196,8 +198,6 @@ public class PlanningDetails {
         this.applicationReceived = applicationReceived;
         return this;
     }
-
-    public PlanningDetails() {}
 
     @Override
     public String toString() {

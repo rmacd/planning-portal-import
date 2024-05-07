@@ -116,7 +116,7 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
                         .build(), PlanningFeature.class
                 );
                 if (null != sr.hits().total() && sr.hits().total().value() > 0) {
-                    logger.warn(
+                    logger.debug(
                             "Document exists: \nOriginal: '{}' \nNew: '{}'",
                             sr.hits().hits().get(0).source(), parentJson
                     );

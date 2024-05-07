@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 public class Debug {
@@ -26,6 +27,11 @@ public class Debug {
     public Debug(ElasticsearchClient esClient, MetadataService metadataService) {
         this.esClient = esClient;
         this.metadataService = metadataService;
+    }
+
+    @GetMapping("/debug/get-cached-details")
+    public List<PlanningDetails> getCachedPlanningDetails() {
+        return metadataService.getCachedPlanningDetails();
     }
 
     @GetMapping("/debug/update-stls")
@@ -55,7 +61,8 @@ public class Debug {
                     }
                     processedHits++;
                 }
-            } while (processedHits <= totalHits);
+            } while (processedHits < totalHits);
+            logger.info("Finished processing {} results", totalHits);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

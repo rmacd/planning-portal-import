@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MetadataServiceImpl implements MetadataService {
@@ -36,6 +38,11 @@ public class MetadataServiceImpl implements MetadataService {
                 .orElseGet(() -> getDetailsHTML(authority, ref));
         PlanningDetails details = PlanningDetailsFactory.create(response.getDocument());
         return details;
+    }
+
+    @Override
+    public List<PlanningDetails> getCachedPlanningDetails() {
+        return responseCacheRepo.findAll().stream().map(p -> PlanningDetailsFactory.create(p.getDocument())).toList();
     }
 
     private ResponseCache getDetailsHTML(AuthorityEnum authority, String ref) {

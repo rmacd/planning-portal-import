@@ -13,6 +13,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PlanningDetailsFactory {
 
@@ -125,9 +127,22 @@ public class PlanningDetailsFactory {
 
         // associated docs etc
         String associatedDoc = doc.select("p.associateddocument").text();
+        details.setAssociatedDocuments(getAssociatedItemCount(associatedDoc));
         String associatedProperty = doc.select("p.associatedproperty").text();
+        details.setAssociatedProperties(getAssociatedItemCount(associatedProperty));
 
         return details;
+    }
+
+    static Integer getAssociatedItemCount(String input) {
+        if (null == input || input.isEmpty()) return null;
+        Pattern p = Pattern.compile("^there (?:is|are) ([0-9]{1,3})", Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(input);
+
+        if (m.find()) {
+            return Integer.valueOf(m.group(1));
+        }
+        return null;
     }
 
     static String toEnum(String input) {
