@@ -10,6 +10,26 @@ public class PlanningDetails {
     String proposal;
     PlanningStatusEnum status;
     AppealStatusEnum appealStatus;
+    Integer associatedDocuments;
+    Integer associatedProperties;
+
+    public Integer getAssociatedDocuments() {
+        return associatedDocuments;
+    }
+
+    public PlanningDetails setAssociatedDocuments(Integer associatedDocuments) {
+        this.associatedDocuments = associatedDocuments;
+        return this;
+    }
+
+    public Integer getAssociatedProperties() {
+        return associatedProperties;
+    }
+
+    public PlanningDetails setAssociatedProperties(Integer associatedProperties) {
+        this.associatedProperties = associatedProperties;
+        return this;
+    }
 
     public String getApplicationType() {
         return applicationType;

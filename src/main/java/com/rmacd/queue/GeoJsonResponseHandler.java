@@ -2,7 +2,12 @@ package com.rmacd.queue;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.query_dsl.ExistsQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.IdsQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +15,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import com.rmacd.models.AuthorityEnum;
 import com.rmacd.models.IncomingRequest;
+import com.rmacd.models.es.PlanningFeature;
 import com.rmacd.models.mdb.FailedWrite;
 import com.rmacd.models.mdb.FeatureCollectionWrapper;
 import com.rmacd.repos.mdb.FailedWriteRepo;
@@ -98,6 +104,27 @@ public class GeoJsonResponseHandler implements ResponseHandler<GeometryJSON> {
                 // call helper to add other fields
                 JsonNode parent = createObj(docId, feature, reprojected, originalRequest);
                 String parentJson = new ObjectMapper().writeValueAsString(parent);
+
+                // test if document exists
+                SearchResponse<PlanningFeature> sr = esClient.search(new SearchRequest.Builder()
+                        .index("planning-features")
+                        .query(new MatchQuery.Builder()
+                                .field("_id")
+                                .query(docId)
+                                .build()._toQuery()
+                        )
+                        .build(), PlanningFeature.class
+                );
+                if (null != sr.hits().total() && sr.hits().total().value() > 0) {
+                    logger.warn(
+                            "Document exists: \nOriginal: '{}' \nNew: '{}'",
+                            sr.hits().hits().get(0).source(), parentJson
+                    );
+                    PlanningFeature oldFeature = sr.hits().hits().get(0).source();
+                    if (null != oldFeature &&
+                            !oldFeature.getKeyval().equalsIgnoreCase(((SimpleFeatureImpl) feature).getAttribute("KEYVAL").toString()))
+                        logger.error("KEYVAL for identical IDs do not match");
+                }
 
                 try {
                     IndexResponse r = esClient.index(i -> i

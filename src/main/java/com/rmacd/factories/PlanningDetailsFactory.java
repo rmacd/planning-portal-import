@@ -123,6 +123,10 @@ public class PlanningDetailsFactory {
             }
         }
 
+        // associated docs etc
+        String associatedDoc = doc.select("p.associateddocument").text();
+        String associatedProperty = doc.select("p.associatedproperty").text();
+
         return details;
     }
 

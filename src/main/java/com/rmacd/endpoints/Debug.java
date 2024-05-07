@@ -36,18 +36,26 @@ public class Debug {
                 .build()._toQuery();
 
         try {
-            SearchResponse<PlanningFeature> response = esClient.search(new SearchRequest.Builder()
-                            .index("planning-features")
-                            .query(fulstlQuery)
-                            .build(), PlanningFeature.class
-            );
-            for (Hit<PlanningFeature> hit : response.hits().hits()) {
-                if (null != hit.source()) {
-                    PlanningFeature feature = hit.source();
-                    PlanningDetails details = metadataService.getPlanningDetails(feature.getAuthority(), feature.getKeyval());
-                    logger.info("Got details: {}", details);
+            long totalHits = 0;
+            long processedHits = 0;
+            do {
+                SearchResponse<PlanningFeature> response = esClient.search(new SearchRequest.Builder()
+                        .index("planning-features")
+                        .from(Math.toIntExact(processedHits))
+                        .size(10)
+                        .query(fulstlQuery)
+                        .build(), PlanningFeature.class
+                );
+                totalHits = (null != response.hits().total() ? response.hits().total().value(): 0);
+                for (Hit<PlanningFeature> hit : response.hits().hits()) {
+                    if (null != hit.source()) {
+                        PlanningFeature feature = hit.source();
+                        PlanningDetails details = metadataService.getPlanningDetails(feature.getAuthority(), feature.getKeyval());
+                        logger.info("Got details: {}", details);
+                    }
+                    processedHits++;
                 }
-            }
+            } while (processedHits <= totalHits);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

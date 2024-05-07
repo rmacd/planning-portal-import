@@ -11,6 +11,16 @@ public class PlanningFeature {
     String keyval;
     AuthorityEnum authority;
 
+    @Override
+    public String toString() {
+        return "PlanningFeature{" +
+                "objectId='" + objectId + '\'' +
+                ", refval='" + refval + '\'' +
+                ", keyval='" + keyval + '\'' +
+                ", authority=" + authority +
+                '}';
+    }
+
     public AuthorityEnum getAuthority() {
         return authority;
     }
